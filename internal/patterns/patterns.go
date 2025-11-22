@@ -133,6 +133,25 @@ func QueryExecutionMethods() map[string]bool {
 		"WithTx":  true,
 		"ReadTx":  true,
 		"BeginTx": true,
+
+		// api-db package functions (gitlab.cept.gov.in/it-2.0-common/api-db)
+		"SelectOne":     true,
+		"SelectRows":    true,
+		"QueueReturn":   true,
+		"QueueExecRow":  true,
+		"QueueReturnRow": true,
+	}
+}
+
+// PackageLevelDBFunctions returns package-level functions that execute queries
+// These are called as dblib.FunctionName() rather than obj.Method()
+func PackageLevelDBFunctions() map[string]bool {
+	return map[string]bool{
+		"SelectOne":      true,
+		"SelectRows":     true,
+		"QueueReturn":    true,
+		"QueueExecRow":   true,
+		"QueueReturnRow": true,
 	}
 }
 
@@ -151,6 +170,10 @@ func LoopSensitiveMethods() map[string]bool {
 		"Exists":          true,
 		"WithTx":          true,
 		"ReadTx":          true,
+
+		// api-db package functions
+		"SelectOne":      true,
+		"SelectRows":     true,
 	}
 }
 

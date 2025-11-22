@@ -117,6 +117,27 @@ func (d *MultiTripDetector) isDBExecCall(call parser.CallInfo, imports map[strin
 	}
 
 	receiver := call.Receiver
+
+	// Check for package-level DB function calls (e.g., dblib.SelectOne)
+	pkgFuncs := patterns.PackageLevelDBFunctions()
+	if pkgFuncs[call.Method] {
+		// Check if receiver is a known DB library alias
+		dbLibAliases := []string{"dblib", "db", "apidb", "sqldb"}
+		for _, alias := range dbLibAliases {
+			if receiver == alias {
+				return true
+			}
+		}
+		// Also check imports for api-db or database packages
+		for alias, path := range imports {
+			if receiver == alias {
+				if containsAny(path, []string{"api-db", "database", "pgx", "sql"}) {
+					return true
+				}
+			}
+		}
+	}
+
 	if receiver == "" {
 		return false
 	}
@@ -147,6 +168,19 @@ func (d *MultiTripDetector) isDBExecCall(call parser.CallInfo, imports map[strin
 		}
 	}
 
+	return false
+}
+
+func containsAny(s string, substrs []string) bool {
+	for _, substr := range substrs {
+		if len(s) >= len(substr) {
+			for i := 0; i <= len(s)-len(substr); i++ {
+				if s[i:i+len(substr)] == substr {
+					return true
+				}
+			}
+		}
+	}
 	return false
 }
 
