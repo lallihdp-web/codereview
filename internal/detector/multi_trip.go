@@ -19,6 +19,17 @@ type MultiTripIssue struct {
 	Suggestion string
 }
 
+// MultipleBatchIssue represents multiple SendBatch calls in a single function
+type MultipleBatchIssue struct {
+	File         string
+	Line         int
+	Column       int
+	Function     string
+	BatchCalls   []QueryLocation
+	Message      string
+	Suggestion   string
+}
+
 // QueryLocation holds location info for a query
 type QueryLocation struct {
 	Line     int
@@ -30,15 +41,17 @@ type QueryLocation struct {
 
 // MultiTripDetector detects sequential database queries
 type MultiTripDetector struct {
-	execMethods map[string]bool
-	maxDistance int // Max lines between queries to consider them sequential
+	execMethods       map[string]bool
+	batchExecMethods  map[string]bool
+	maxDistance       int // Max lines between queries to consider them sequential
 }
 
 // NewMultiTripDetector creates a new multi-trip detector
 func NewMultiTripDetector() *MultiTripDetector {
 	return &MultiTripDetector{
-		execMethods: patterns.QueryExecutionMethods(),
-		maxDistance: 10, // Queries within 10 lines
+		execMethods:      patterns.QueryExecutionMethods(),
+		batchExecMethods: patterns.BatchExecutionMethods(),
+		maxDistance:      10, // Queries within 10 lines
 	}
 }
 
@@ -52,6 +65,64 @@ func (d *MultiTripDetector) Detect(pf *parser.ParsedFile) []MultiTripIssue {
 	}
 
 	return issues
+}
+
+// DetectMultipleBatch finds functions with multiple SendBatch calls
+func (d *MultiTripDetector) DetectMultipleBatch(pf *parser.ParsedFile) []MultipleBatchIssue {
+	var issues []MultipleBatchIssue
+
+	funcs := pf.GetFunctions()
+	for _, fn := range funcs {
+		if issue := d.detectMultipleBatchInFunction(pf, fn); issue != nil {
+			issues = append(issues, *issue)
+		}
+	}
+
+	return issues
+}
+
+func (d *MultiTripDetector) detectMultipleBatchInFunction(pf *parser.ParsedFile, fn parser.FunctionInfo) *MultipleBatchIssue {
+	calls := parser.GetCalls(fn.Body)
+
+	// Find all SendBatch calls
+	var batchCalls []parser.CallInfo
+	for _, call := range calls {
+		if d.batchExecMethods[call.Method] {
+			batchCalls = append(batchCalls, call)
+		}
+	}
+
+	// Only report if more than one SendBatch call
+	if len(batchCalls) <= 1 {
+		return nil
+	}
+
+	// Build issue
+	var batchLocs []QueryLocation
+	for _, call := range batchCalls {
+		pos := pf.FileSet.Position(call.Pos)
+		batchLocs = append(batchLocs, QueryLocation{
+			Line:     pos.Line,
+			Column:   pos.Column,
+			Method:   call.Method,
+			Receiver: call.Receiver,
+		})
+	}
+
+	firstPos := pf.FileSet.Position(batchCalls[0].Pos)
+
+	return &MultipleBatchIssue{
+		File:       pf.Path,
+		Line:       firstPos.Line,
+		Column:     firstPos.Column,
+		Function:   fn.Name,
+		BatchCalls: batchLocs,
+		Message: fmt.Sprintf(
+			"Multiple SendBatch calls detected: %d batch executions in function '%s'. Each SendBatch is a database round trip - consider combining into a single batch.",
+			len(batchCalls), fn.Name,
+		),
+		Suggestion: "Combine all batch operations into a single pgx.Batch and execute with one SendBatch call to minimize round trips.",
+	}
 }
 
 func (d *MultiTripDetector) detectInFunction(pf *parser.ParsedFile, fn parser.FunctionInfo) []MultiTripIssue {
@@ -248,6 +319,15 @@ func (d *MultiTripDetector) buildSuggestion(queries []QueryLocation) string {
 
 // Position returns file position info
 func (m MultiTripIssue) Position() token.Position {
+	return token.Position{
+		Filename: m.File,
+		Line:     m.Line,
+		Column:   m.Column,
+	}
+}
+
+// Position returns file position info
+func (m MultipleBatchIssue) Position() token.Position {
 	return token.Position{
 		Filename: m.File,
 		Line:     m.Line,

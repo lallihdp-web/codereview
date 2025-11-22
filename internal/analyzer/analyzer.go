@@ -98,6 +98,25 @@ func (a *Analyzer) AnalyzeFile(path string) ([]Issue, error) {
 		})
 	}
 
+	// Run multiple batch detector (multiple SendBatch in one function)
+	batchIssues := a.multiTrip.DetectMultipleBatch(pf)
+	for _, bi := range batchIssues {
+		issues = append(issues, Issue{
+			Type:       "multiple-batch",
+			Severity:   "warning",
+			File:       bi.File,
+			Line:       bi.Line,
+			Column:     bi.Column,
+			Function:   bi.Function,
+			Message:    bi.Message,
+			Suggestion: bi.Suggestion,
+			Details: map[string]any{
+				"batch_count": len(bi.BatchCalls),
+				"batch_calls": bi.BatchCalls,
+			},
+		})
+	}
+
 	// Run SQL pattern detector
 	sqlPatternIssues := a.sqlPattern.Detect(pf)
 	for _, si := range sqlPatternIssues {

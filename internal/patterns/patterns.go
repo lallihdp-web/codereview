@@ -143,15 +143,40 @@ func QueryExecutionMethods() map[string]bool {
 	}
 }
 
-// PackageLevelDBFunctions returns package-level functions that execute queries
+// PackageLevelDBFunctions returns package-level functions that execute queries immediately
 // These are called as dblib.FunctionName() rather than obj.Method()
 func PackageLevelDBFunctions() map[string]bool {
 	return map[string]bool{
-		"SelectOne":      true,
-		"SelectRows":     true,
+		// Select functions (execute immediately)
+		"SelectOne":     true,
+		"SelectRows":    true,
+		"SelectOneOK":   true,
+		"SelectRowsTag": true,
+
+		// Insert/Update functions (execute immediately)
+		"Insert":              true,
+		"Update":              true,
+		"InsertReturning":     true,
+		"UpdateReturning":     true,
+		"InsertReturningrows": true,
+	}
+}
+
+// BatchQueueFunctions returns functions that queue queries for batch execution
+// These don't execute immediately, so multiple calls are OK
+func BatchQueueFunctions() map[string]bool {
+	return map[string]bool{
 		"QueueReturn":    true,
 		"QueueExecRow":   true,
 		"QueueReturnRow": true,
+	}
+}
+
+// BatchExecutionMethods returns methods that execute batched queries
+// Multiple calls to SendBatch in a single function = multiple round trips
+func BatchExecutionMethods() map[string]bool {
+	return map[string]bool{
+		"SendBatch": true,
 	}
 }
 
@@ -171,9 +196,16 @@ func LoopSensitiveMethods() map[string]bool {
 		"WithTx":          true,
 		"ReadTx":          true,
 
-		// api-db package functions
-		"SelectOne":      true,
-		"SelectRows":     true,
+		// api-db package functions (immediate execution)
+		"SelectOne":           true,
+		"SelectRows":          true,
+		"SelectOneOK":         true,
+		"SelectRowsTag":       true,
+		"Insert":              true,
+		"Update":              true,
+		"InsertReturning":     true,
+		"UpdateReturning":     true,
+		"InsertReturningrows": true,
 	}
 }
 
