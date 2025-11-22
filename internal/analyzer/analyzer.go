@@ -157,6 +157,25 @@ func (a *Analyzer) AnalyzeFile(path string) ([]Issue, error) {
 		})
 	}
 
+	// Run multiple raw DB detector (summary when function has many raw DB calls)
+	multiRawDBIssues := a.rawDB.DetectMultiple(pf)
+	for _, mr := range multiRawDBIssues {
+		issues = append(issues, Issue{
+			Type:       "multiple-raw-db",
+			Severity:   "warning",
+			File:       mr.File,
+			Line:       mr.Line,
+			Column:     mr.Column,
+			Function:   mr.Function,
+			Message:    mr.Message,
+			Suggestion: mr.Suggestion,
+			Details: map[string]any{
+				"call_count": mr.CallCount,
+				"raw_calls":  mr.RawCalls,
+			},
+		})
+	}
+
 	// Run multi-repo detector (for services/handlers)
 	if a.config.AnalyzeRepos {
 		multiRepoIssues := a.multiRepo.Detect(pf)
