@@ -15,7 +15,7 @@ var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print the version number",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("go-query-analyzer %s (built: %s)\n", Version, BuildTime)
+		fmt.Printf("codereview %s (built: %s)\n", Version, BuildTime)
 	},
 }
 

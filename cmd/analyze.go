@@ -21,12 +21,12 @@ var analyzeCmd = &cobra.Command{
 	Long: `Analyze Go source files or directories for database query issues.
 
 Examples:
-  go-query-analyzer analyze .
-  go-query-analyzer analyze ./internal/repository
-  go-query-analyzer analyze main.go
-  go-query-analyzer analyze . -f json
-  go-query-analyzer analyze . -f reviewdog
-  go-query-analyzer analyze ./core/service --repos`,
+  codereview analyze .
+  codereview analyze ./internal/repository
+  codereview analyze main.go
+  codereview analyze . -f json
+  codereview analyze . -f reviewdog
+  codereview analyze ./core/service --repos`,
 	Args: cobra.MinimumNArgs(1),
 	RunE: runAnalyze,
 }

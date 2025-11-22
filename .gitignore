@@ -1,5 +1,5 @@
 # Binaries
-go-query-analyzer
+codereview
 *.exe
 *.exe~
 *.dll

@@ -12,7 +12,7 @@ git clone https://github.com/lallihdp-web/codereview.git
 cd codereview
 
 # Build the binary
-go build -o go-query-analyzer ./main.go
+go build -o codereview ./main.go
 
 # (Optional) Install to your PATH
 go install
@@ -26,7 +26,7 @@ go install github.com/lallihdp-web/codereview@latest
 # Or build from source
 git clone https://github.com/lallihdp-web/codereview.git
 cd codereview
-go build -o go-query-analyzer .
+go build -o codereview .
 ```
 
 ## Usage
@@ -35,36 +35,36 @@ go build -o go-query-analyzer .
 
 ```bash
 # Analyze a directory
-./go-query-analyzer analyze ./path/to/code
+./codereview analyze ./path/to/code
 
 # Analyze with multi-repository detection (for services/handlers)
-./go-query-analyzer analyze ./path/to/code --repos
+./codereview analyze ./path/to/code --repos
 
 # Analyze specific service/handler directories
-./go-query-analyzer analyze-service ./core/service
+./codereview analyze-service ./core/service
 ```
 
 ### Output Formats
 
 ```bash
 # Text output (default) - human readable
-./go-query-analyzer analyze ./path
+./codereview analyze ./path
 
 # JSON output - for CI/CD pipelines
-./go-query-analyzer analyze ./path -f json
+./codereview analyze ./path -f json
 
 # Reviewdog format - for PR comments
-./go-query-analyzer analyze ./path -f reviewdog
+./codereview analyze ./path -f reviewdog
 ```
 
 ### CI/CD Integration
 
 ```bash
 # Use with reviewdog
-./go-query-analyzer analyze ./src -f reviewdog | reviewdog -f=rdjsonl -reporter=github-pr-review
+./codereview analyze ./src -f reviewdog | reviewdog -f=rdjsonl -reporter=github-pr-review
 
 # JSON for custom processing
-./go-query-analyzer analyze ./src -f json > report.json
+./codereview analyze ./src -f json > report.json
 ```
 
 ## What It Detects
