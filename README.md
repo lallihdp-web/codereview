@@ -1,6 +1,6 @@
 # Go Query Analyzer
 
-A CLI tool to analyze Go code for database query issues, helping identify performance problems and enforce best practices.
+A CLI tool to analyze Go code for database query issues, helping identify performance problems and enforce best practices. chagng
 
 ## Installation
 
