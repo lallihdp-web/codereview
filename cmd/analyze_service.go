@@ -11,32 +11,29 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	analyzeRepos bool
-)
+var analyzeServiceCmd = &cobra.Command{
+	Use:   "analyze-service [path]",
+	Short: "Analyze service/handler files for multi-repository calls",
+	Long: `Analyze Go service or handler files for database repository issues.
 
-var analyzeCmd = &cobra.Command{
-	Use:   "analyze [path]",
-	Short: "Analyze Go files for database query issues",
-	Long: `Analyze Go source files or directories for database query issues.
+This command specifically looks for:
+  - Multiple repository calls in a single function
+  - Repository calls inside loops (N+1 at service layer)
+  - Functions that could benefit from transactions or batching
 
 Examples:
-  go-query-analyzer analyze .
-  go-query-analyzer analyze ./internal/repository
-  go-query-analyzer analyze main.go
-  go-query-analyzer analyze . -f json
-  go-query-analyzer analyze . -f reviewdog
-  go-query-analyzer analyze ./core/service --repos`,
+  go-query-analyzer analyze-service ./core/service
+  go-query-analyzer analyze-service ./handler
+  go-query-analyzer analyze-service ./internal/service -f json`,
 	Args: cobra.MinimumNArgs(1),
-	RunE: runAnalyze,
+	RunE: runAnalyzeService,
 }
 
 func init() {
-	analyzeCmd.Flags().BoolVar(&analyzeRepos, "repos", false, "Enable multi-repository call detection for services/handlers")
-	rootCmd.AddCommand(analyzeCmd)
+	rootCmd.AddCommand(analyzeServiceCmd)
 }
 
-func runAnalyze(cmd *cobra.Command, args []string) error {
+func runAnalyzeService(cmd *cobra.Command, args []string) error {
 	path := args[0]
 
 	// Collect all Go files
@@ -53,7 +50,7 @@ func runAnalyze(cmd *cobra.Command, args []string) error {
 			}
 			return nil
 		}
-		// Only process Go files
+		// Only process Go files (include test files for services)
 		if strings.HasSuffix(p, ".go") && !strings.HasSuffix(p, "_test.go") {
 			files = append(files, p)
 		}
@@ -68,11 +65,11 @@ func runAnalyze(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	// Create analyzer
+	// Create analyzer with repo analysis enabled
 	a := analyzer.New(analyzer.Config{
 		Verbose:      verbose,
 		SchemaFile:   schemaFile,
-		AnalyzeRepos: analyzeRepos,
+		AnalyzeRepos: true, // Enable multi-repo detection
 	})
 
 	// Analyze files
@@ -88,7 +85,15 @@ func runAnalyze(cmd *cobra.Command, args []string) error {
 		allIssues = append(allIssues, issues...)
 	}
 
+	// Filter to only show multi-repo issues (since this is a service-specific command)
+	var serviceIssues []analyzer.Issue
+	for _, issue := range allIssues {
+		if issue.Type == "multi-repo" {
+			serviceIssues = append(serviceIssues, issue)
+		}
+	}
+
 	// Output results
 	formatter := output.NewFormatter(outputFormat)
-	return formatter.Format(os.Stdout, allIssues)
+	return formatter.Format(os.Stdout, serviceIssues)
 }

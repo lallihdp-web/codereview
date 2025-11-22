@@ -7,8 +7,9 @@ import (
 
 // Config holds analyzer configuration
 type Config struct {
-	Verbose    bool
-	SchemaFile string
+	Verbose       bool
+	SchemaFile    string
+	AnalyzeRepos  bool // Enable multi-repository call detection for services/handlers
 }
 
 // Issue represents a detected issue
@@ -30,6 +31,7 @@ type Analyzer struct {
 	nPlusOne        *detector.NPlusOneDetector
 	multiTrip       *detector.MultiTripDetector
 	sqlPattern      *detector.SQLPatternDetector
+	multiRepo       *detector.MultiRepoDetector
 }
 
 // New creates a new analyzer
@@ -39,6 +41,7 @@ func New(config Config) *Analyzer {
 		nPlusOne:   detector.NewNPlusOneDetector(),
 		multiTrip:  detector.NewMultiTripDetector(),
 		sqlPattern: detector.NewSQLPatternDetector(),
+		multiRepo:  detector.NewMultiRepoDetector(),
 	}
 }
 
@@ -111,6 +114,34 @@ func (a *Analyzer) AnalyzeFile(path string) ([]Issue, error) {
 				"sql":     si.SQL,
 			},
 		})
+	}
+
+	// Run multi-repo detector (for services/handlers)
+	if a.config.AnalyzeRepos {
+		multiRepoIssues := a.multiRepo.Detect(pf)
+		for _, mr := range multiRepoIssues {
+			suggestion := "Consider:\n" +
+				"  1. Combine repository calls into a single transaction\n" +
+				"  2. Use batch operations to reduce database round trips\n" +
+				"  3. Pre-fetch related data before loops\n" +
+				"  4. Consider creating a dedicated repository method for this use case"
+
+			issues = append(issues, Issue{
+				Type:       "multi-repo",
+				Severity:   mr.Severity,
+				File:       mr.File,
+				Line:       mr.Line,
+				Column:     mr.Column,
+				Function:   mr.Function,
+				Message:    mr.Message,
+				Suggestion: suggestion,
+				Details: map[string]any{
+					"struct":     mr.StructName,
+					"repos_used": mr.ReposUsed,
+					"in_loop":    mr.IsInLoop,
+				},
+			})
+		}
 	}
 
 	return issues, nil
