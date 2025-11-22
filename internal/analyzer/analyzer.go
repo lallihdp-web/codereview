@@ -32,6 +32,7 @@ type Analyzer struct {
 	multiTrip       *detector.MultiTripDetector
 	sqlPattern      *detector.SQLPatternDetector
 	multiRepo       *detector.MultiRepoDetector
+	rawDB           *detector.RawDBDetector
 }
 
 // New creates a new analyzer
@@ -42,6 +43,7 @@ func New(config Config) *Analyzer {
 		multiTrip:  detector.NewMultiTripDetector(),
 		sqlPattern: detector.NewSQLPatternDetector(),
 		multiRepo:  detector.NewMultiRepoDetector(),
+		rawDB:      detector.NewRawDBDetector(),
 	}
 }
 
@@ -131,6 +133,26 @@ func (a *Analyzer) AnalyzeFile(path string) ([]Issue, error) {
 			Details: map[string]any{
 				"pattern": si.PatternName,
 				"sql":     si.SQL,
+			},
+		})
+	}
+
+	// Run raw DB detector (suggest using dblib instead of raw methods)
+	rawDBIssues := a.rawDB.Detect(pf)
+	for _, ri := range rawDBIssues {
+		issues = append(issues, Issue{
+			Type:       "raw-db",
+			Severity:   "info",
+			File:       ri.File,
+			Line:       ri.Line,
+			Column:     ri.Column,
+			Function:   ri.Function,
+			Message:    ri.Message,
+			Suggestion: "Use dblib functions for consistent error handling and logging.",
+			Details: map[string]any{
+				"method":      ri.Method,
+				"receiver":    ri.Receiver,
+				"alternative": ri.Alternative,
 			},
 		})
 	}

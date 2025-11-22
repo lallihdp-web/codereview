@@ -180,6 +180,28 @@ func BatchExecutionMethods() map[string]bool {
 	}
 }
 
+// RawDBMethodsToDblib maps raw database methods to their recommended dblib alternatives
+// These are methods that should ideally use dblib functions instead
+func RawDBMethodsToDblib() map[string]string {
+	return map[string]string{
+		// Raw query methods -> dblib alternatives
+		"Query":           "dblib.SelectRows",
+		"QueryRow":        "dblib.SelectOne",
+		"QueryContext":    "dblib.SelectRows",
+		"QueryRowContext": "dblib.SelectOne",
+		"Exec":            "dblib.Insert/Update",
+		"ExecContext":     "dblib.Insert/Update",
+	}
+}
+
+// RawDBReceivers returns receiver patterns that indicate raw database usage
+func RawDBReceivers() []string {
+	return []string{
+		"db", "DB", "tx", "Tx", "conn", "Conn", "pool", "Pool",
+		".db", ".DB", ".tx", ".Tx", ".conn", ".Conn", ".pool", ".Pool",
+	}
+}
+
 // LoopSensitiveMethods returns methods that are problematic when called in loops
 func LoopSensitiveMethods() map[string]bool {
 	return map[string]bool{
