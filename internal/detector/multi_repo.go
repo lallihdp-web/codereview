@@ -6,7 +6,7 @@ import (
 	"go/token"
 	"strings"
 
-	"github.com/lallihdp-web/go-query-analyzer/internal/parser"
+	"github.com/lallihdp-web/codereview/internal/parser"
 )
 
 // MultiRepoIssue represents multiple repository calls in a single function

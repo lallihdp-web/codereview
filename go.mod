@@ -1,4 +1,4 @@
-module github.com/lallihdp-web/go-query-analyzer
+module github.com/lallihdp-web/codereview
 
 go 1.24.7
 

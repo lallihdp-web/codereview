@@ -5,8 +5,8 @@ import (
 	"go/ast"
 	"go/token"
 
-	"github.com/lallihdp-web/go-query-analyzer/internal/parser"
-	"github.com/lallihdp-web/go-query-analyzer/internal/patterns"
+	"github.com/lallihdp-web/codereview/internal/parser"
+	"github.com/lallihdp-web/codereview/internal/patterns"
 )
 
 // NPlusOneIssue represents an N+1 query problem

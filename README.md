@@ -22,6 +22,11 @@ go install
 
 ```bash
 go install github.com/lallihdp-web/codereview@latest
+
+# Or build from source
+git clone https://github.com/lallihdp-web/codereview.git
+cd codereview
+go build -o go-query-analyzer .
 ```
 
 ## Usage

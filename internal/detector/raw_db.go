@@ -5,8 +5,8 @@ import (
 	"go/token"
 	"strings"
 
-	"github.com/lallihdp-web/go-query-analyzer/internal/parser"
-	"github.com/lallihdp-web/go-query-analyzer/internal/patterns"
+	"github.com/lallihdp-web/codereview/internal/parser"
+	"github.com/lallihdp-web/codereview/internal/patterns"
 )
 
 // RawDBIssue represents usage of raw database methods instead of dblib

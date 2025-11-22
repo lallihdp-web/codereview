@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/lallihdp-web/go-query-analyzer/internal/analyzer"
-	"github.com/lallihdp-web/go-query-analyzer/internal/output"
+	"github.com/lallihdp-web/codereview/internal/analyzer"
+	"github.com/lallihdp-web/codereview/internal/output"
 	"github.com/spf13/cobra"
 )
 

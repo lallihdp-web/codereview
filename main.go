@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/lallihdp-web/go-query-analyzer/cmd"
+	"github.com/lallihdp-web/codereview/cmd"
 )
 
 func main() {

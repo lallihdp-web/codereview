@@ -1,8 +1,8 @@
 package analyzer
 
 import (
-	"github.com/lallihdp-web/go-query-analyzer/internal/detector"
-	"github.com/lallihdp-web/go-query-analyzer/internal/parser"
+	"github.com/lallihdp-web/codereview/internal/detector"
+	"github.com/lallihdp-web/codereview/internal/parser"
 )
 
 // Config holds analyzer configuration

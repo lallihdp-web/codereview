@@ -6,7 +6,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/lallihdp-web/go-query-analyzer/internal/analyzer"
+	"github.com/lallihdp-web/codereview/internal/analyzer"
 )
 
 // Formatter formats analysis results
@@ -166,7 +166,7 @@ func (f *Formatter) formatReviewdog(w io.Writer, issues []analyzer.Issue) error 
 			Severity: mapSeverity(issue.Severity),
 			Source: ReviewdogSource{
 				Name: "go-query-analyzer",
-				URL:  "https://github.com/lallihdp-web/go-query-analyzer",
+				URL:  "https://github.com/lallihdp-web/codereview",
 			},
 			Code: &ReviewdogCode{
 				Value: issue.Type,
