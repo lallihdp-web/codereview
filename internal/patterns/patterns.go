@@ -202,6 +202,70 @@ func RawDBReceivers() []string {
 	}
 }
 
+// SquirrelBuilderMethods returns methods that are Squirrel query builders (NOT execution)
+// These just build queries, they don't execute them
+func SquirrelBuilderMethods() map[string]bool {
+	return map[string]bool{
+		// Query building methods
+		"Insert":   true,
+		"Update":   true,
+		"Delete":   true,
+		"Select":   true,
+		"Into":     true,
+		"Columns":  true,
+		"Values":   true,
+		"Set":      true,
+		"SetMap":   true,
+		"Where":    true,
+		"OrderBy":  true,
+		"Limit":    true,
+		"Offset":   true,
+		"From":     true,
+		"Join":     true,
+		"LeftJoin": true,
+		"RightJoin": true,
+		"InnerJoin": true,
+		"GroupBy":  true,
+		"Having":   true,
+		"Suffix":   true,
+		"Prefix":   true,
+		"ToSql":    true,
+		"PlaceholderFormat": true,
+	}
+}
+
+// SquirrelBuilderReceivers returns receiver names that indicate Squirrel query builder
+func SquirrelBuilderReceivers() []string {
+	return []string{
+		"psql", "Psql", "sq", "squirrel", "builder",
+		"insertBuilder", "updateBuilder", "selectBuilder", "deleteBuilder",
+	}
+}
+
+// IsSquirrelBuilderCall checks if a call is a Squirrel builder method (not execution)
+func IsSquirrelBuilderCall(receiver, method string) bool {
+	builderMethods := SquirrelBuilderMethods()
+	builderReceivers := SquirrelBuilderReceivers()
+
+	// Check if method is a builder method
+	if !builderMethods[method] {
+		return false
+	}
+
+	// Check if receiver is a Squirrel builder
+	for _, br := range builderReceivers {
+		if receiver == br {
+			return true
+		}
+		// Also check suffix (e.g., "r.psql")
+		if len(receiver) > len(br) && receiver[len(receiver)-len(br):] == br {
+			return true
+		}
+	}
+
+	return false
+}
+
 // LoopSensitiveMethods returns methods that are problematic when called in loops
 func LoopSensitiveMethods() map[string]bool {
 	return map[string]bool{

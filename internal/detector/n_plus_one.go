@@ -103,12 +103,16 @@ func (d *NPlusOneDetector) isDBCall(call parser.CallInfo, imports map[string]str
 		return false
 	}
 
+	// Skip Squirrel query builder methods (they don't execute, just build queries)
+	if patterns.IsSquirrelBuilderCall(receiver, call.Method) {
+		return false
+	}
+
 	// Check for common database receiver patterns
 	// These can be exact matches or suffixes (e.g., "r.db" ends with ".db")
 	dbReceivers := []string{
 		"db", "DB", "tx", "Tx", "conn", "Conn", "pool", "Pool",
 		"repo", "repository", "store", "dao",
-		"Psql", "psql", // api-db Squirrel builder
 		"rows", "Rows", "orderRows", "productRows", "categories", "products",
 	}
 

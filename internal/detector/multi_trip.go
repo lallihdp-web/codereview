@@ -189,6 +189,11 @@ func (d *MultiTripDetector) isDBExecCall(call parser.CallInfo, imports map[strin
 
 	receiver := call.Receiver
 
+	// Skip Squirrel query builder methods (they don't execute, just build queries)
+	if patterns.IsSquirrelBuilderCall(receiver, call.Method) {
+		return false
+	}
+
 	// Check for package-level DB function calls (e.g., dblib.SelectOne)
 	pkgFuncs := patterns.PackageLevelDBFunctions()
 	if pkgFuncs[call.Method] {
@@ -217,7 +222,6 @@ func (d *MultiTripDetector) isDBExecCall(call parser.CallInfo, imports map[strin
 	dbReceivers := []string{
 		"db", "DB", "tx", "Tx", "conn", "Conn", "pool", "Pool",
 		"repo", "repository", "store", "dao",
-		"Psql", "psql",
 	}
 
 	for _, dbr := range dbReceivers {
@@ -232,7 +236,7 @@ func (d *MultiTripDetector) isDBExecCall(call parser.CallInfo, imports map[strin
 	}
 
 	// Also check if receiver ends with common DB field names
-	dbSuffixes := []string{".db", ".DB", ".tx", ".Tx", ".conn", ".Conn", ".pool", ".Pool", ".Psql"}
+	dbSuffixes := []string{".db", ".DB", ".tx", ".Tx", ".conn", ".Conn", ".pool", ".Pool"}
 	for _, suffix := range dbSuffixes {
 		if len(receiver) >= len(suffix) && receiver[len(receiver)-len(suffix):] == suffix {
 			return true
