@@ -41,8 +41,13 @@ type MultiRepoDetector struct {
 func NewMultiRepoDetector() *MultiRepoDetector {
 	return &MultiRepoDetector{
 		repoSuffixes: []string{
+			// Repository patterns
 			"Repo", "Repository", "repo", "repository",
 			"Store", "store", "DAO", "Dao", "dao",
+			// Service patterns (handlers call services which call repos)
+			"Service", "service", "Svc", "svc",
+			// Port patterns (clean architecture)
+			"Port", "port",
 		},
 	}
 }

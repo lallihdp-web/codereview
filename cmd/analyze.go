@@ -21,12 +21,12 @@ var analyzeCmd = &cobra.Command{
 	Long: `Analyze Go source files or directories for database query issues.
 
 Examples:
-  go-query-analyzer analyze .
-  go-query-analyzer analyze ./internal/repository
-  go-query-analyzer analyze main.go
-  go-query-analyzer analyze . -f json
-  go-query-analyzer analyze . -f reviewdog
-  go-query-analyzer analyze ./core/service --repos`,
+  codereview analyze .
+  codereview analyze ./internal/repository
+  codereview analyze main.go
+  codereview analyze . -f json
+  codereview analyze . -f reviewdog
+  codereview analyze ./core/service --repos`,
 	Args: cobra.MinimumNArgs(1),
 	RunE: runAnalyze,
 }
@@ -39,33 +39,68 @@ func init() {
 func runAnalyze(cmd *cobra.Command, args []string) error {
 	path := args[0]
 
+	// Convert to absolute path for Windows compatibility
+	absPath, err := filepath.Abs(path)
+	if err != nil {
+		return fmt.Errorf("failed to resolve path: %w", err)
+	}
+
+	// Check if path exists
+	info, err := os.Stat(absPath)
+	if err != nil {
+		return fmt.Errorf("path does not exist: %s", absPath)
+	}
+
+	if verbose {
+		fmt.Printf("Analyzing path: %s\n", absPath)
+	}
+
 	// Collect all Go files
 	var files []string
-	err := filepath.Walk(path, func(p string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
+
+	if !info.IsDir() {
+		// Single file
+		if strings.HasSuffix(absPath, ".go") {
+			files = append(files, absPath)
 		}
-		// Skip vendor and hidden directories
-		if info.IsDir() {
-			name := info.Name()
-			if name == "vendor" || strings.HasPrefix(name, ".") {
-				return filepath.SkipDir
+	} else {
+		// Directory - walk it
+		err = filepath.Walk(absPath, func(p string, info os.FileInfo, err error) error {
+			if err != nil {
+				if verbose {
+					fmt.Fprintf(os.Stderr, "Warning: error accessing %s: %v\n", p, err)
+				}
+				return nil // Continue walking
+			}
+			// Skip vendor and hidden directories
+			if info.IsDir() {
+				name := info.Name()
+				if name == "vendor" || strings.HasPrefix(name, ".") {
+					return filepath.SkipDir
+				}
+				return nil
+			}
+			// Only process Go files (not test files)
+			if strings.HasSuffix(p, ".go") && !strings.HasSuffix(p, "_test.go") {
+				files = append(files, p)
+				if verbose {
+					fmt.Printf("Found: %s\n", p)
+				}
 			}
 			return nil
+		})
+		if err != nil {
+			return fmt.Errorf("failed to walk path: %w", err)
 		}
-		// Only process Go files
-		if strings.HasSuffix(p, ".go") && !strings.HasSuffix(p, "_test.go") {
-			files = append(files, p)
-		}
-		return nil
-	})
-	if err != nil {
-		return fmt.Errorf("failed to walk path: %w", err)
 	}
 
 	if len(files) == 0 {
-		fmt.Println("No Go files found to analyze")
+		fmt.Printf("No Go files found in: %s\n", absPath)
 		return nil
+	}
+
+	if verbose {
+		fmt.Printf("Found %d Go files to analyze\n", len(files))
 	}
 
 	// Create analyzer

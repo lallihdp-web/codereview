@@ -22,9 +22,9 @@ This command specifically looks for:
   - Functions that could benefit from transactions or batching
 
 Examples:
-  go-query-analyzer analyze-service ./core/service
-  go-query-analyzer analyze-service ./handler
-  go-query-analyzer analyze-service ./internal/service -f json`,
+  codereview analyze-service ./core/service
+  codereview analyze-service ./handler
+  codereview analyze-service ./internal/service -f json`,
 	Args: cobra.MinimumNArgs(1),
 	RunE: runAnalyzeService,
 }

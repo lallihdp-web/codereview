@@ -14,7 +14,7 @@ var (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "go-query-analyzer",
+	Use:   "codereview",
 	Short: "Analyze Go code for database query issues",
 	Long: `A CLI tool to analyze Go code for database query patterns and issues.
 
